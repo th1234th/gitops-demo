@@ -28,6 +28,21 @@ A dedicated GitOps folder demonstrating a complete CI/CD workflow with:
 4. Enable Argo CD to track `gitops-demo/chart` and deploy the Helm release.
 5. Use GitHub Actions to build and publish both `latest` and a short SHA-tagged image.
 
+## Local TLS setup
+
+To create and install a self-signed certificate for `ci-cd.local`, run:
+
+```bash
+chmod +x scripts/setup-tls.sh
+./scripts/setup-tls.sh
+```
+
+Then add the host mapping from your local cluster IP to `ci-cd.local`:
+
+```bash
+sudo sh -c 'echo "$(minikube ip) ci-cd.local" >> /etc/hosts'
+```
+
 ## Notes
 
 - Replace `YOUR_DOCKERHUB_USERNAME` and repository URL placeholders before production.
