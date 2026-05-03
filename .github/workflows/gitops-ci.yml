@@ -27,7 +27,7 @@ jobs:
       - name: Build Docker image
         run: |
           IMAGE_TAG="${GITHUB_SHA::7}"
-          docker build -t "${{ secrets.DOCKER_USERNAME }}/gitops-demo-app:${IMAGE_TAG}" gitops-demo
+          docker build -t "${{ secrets.DOCKER_USERNAME }}/gitops-demo-app:${IMAGE_TAG}" .
           docker tag "${{ secrets.DOCKER_USERNAME }}/gitops-demo-app:${IMAGE_TAG}" "${{ secrets.DOCKER_USERNAME }}/gitops-demo-app:latest"
 
       - name: Push Docker image
@@ -41,7 +41,7 @@ jobs:
           IMAGE_TAG="${GITHUB_SHA::7}"
           python - "$IMAGE_TAG" <<'PY'
           import sys, pathlib
-          path = pathlib.Path('gitops-demo/chart/values.yaml')
+          path = pathlib.Path('chart/values.yaml')
           text = path.read_text()
           old = 'tag: latest'
           new = f'tag: {sys.argv[1]}'
@@ -51,7 +51,7 @@ jobs:
           PY
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add gitops-demo/chart/values.yaml
+          git add chart/values.yaml
           if ! git diff --cached --quiet; then
             git commit -m "ci: bump chart image tag to ${IMAGE_TAG}"
             git push origin HEAD:main
@@ -61,4 +61,4 @@ jobs:
 
       - name: Display deployment manifest path
         run: |
-          echo "Deployment manifest path is gitops-demo/chart"
+          echo "Deployment manifest path is chart"
