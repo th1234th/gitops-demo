@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ci-cd-service
+  namespace: ci-cd
+spec:
+  type: ClusterIP
+  selector:
+    app: ci-cd-app
+  ports:
+    - port: 5000
+      targetPort: 5000
+      protocol: TCP

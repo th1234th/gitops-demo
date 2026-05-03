@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: ci-cd-app
+  namespace: ci-cd
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ci-cd-app
+  template:
+    metadata:
+      labels:
+        app: ci-cd-app
+    spec:
+      containers:
+      - name: app
+        image: YOUR_DOCKERHUB_USERNAME/ci-cd-app:latest
+        ports:
+        - containerPort: 5000
+  strategy:
+    canary:
+      steps:
+      - setWeight: 20
+      - pause:
+          duration: 30s
+      - setWeight: 50
+      - pause:
+          duration: 30s
+      - setWeight: 100
+      - pause:
+          duration: 30s
+      analysis:
+        templates:
+        - templateName: rollback-analysis
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: rollback-analysis
+  namespace: ci-cd
+spec:
+  metrics:
+  - name: request-errors
+    interval: 30s
+    count: 3
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: http://prometheus.monitoring.svc.cluster.local
+        query: |
+          sum(rate(http_requests_total{app="ci-cd-app",status=~"5.."}[5m])) < 1

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-image-updater
+  namespace: argocd
+data:
+  registries.conf: |
+    registries:
+      - name: dockerhub
+        api_url: https://index.docker.io/v1/
+        prefix: docker.io/
+  repositories.conf: |
+    repositories:
+      - url: https://github.com/your-org/your-repo
+        # Configure repository credentials and access for Git write-back if required.

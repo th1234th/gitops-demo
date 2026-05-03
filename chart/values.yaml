@@ -1,0 +1,30 @@
+replicaCount: 2
+
+image:
+  repository: YOUR_DOCKERHUB_USERNAME/gitops-demo-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5000
+
+ingress:
+  enabled: true
+  host: ci-cd.local
+  tls:
+    enabled: true
+    secretName: ci-cd-tls
+
+rollout:
+  canary:
+    steps:
+      - setWeight: 20
+      - pause:
+          duration: 30s
+      - setWeight: 50
+      - pause:
+          duration: 30s
+      - setWeight: 100
+      - pause:
+          duration: 30s

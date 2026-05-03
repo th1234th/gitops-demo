@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gitops-demo
+description: GitOps demo Helm chart for deploying the sample application.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
