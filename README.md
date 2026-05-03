@@ -37,10 +37,17 @@ chmod +x scripts/setup-tls.sh
 ./scripts/setup-tls.sh
 ```
 
-Then add the host mapping from your local cluster IP to `ci-cd.local`:
+To apply the preconfigured ingress and resolve the host mapping automatically, run:
 
 ```bash
-sudo sh -c 'echo "$(minikube ip) ci-cd.local" >> /etc/hosts'
+chmod +x scripts/setup-ingress.sh
+./scripts/setup-ingress.sh
+```
+
+If you want the script to update `/etc/hosts` directly, run it with `sudo`:
+
+```bash
+sudo ./scripts/setup-ingress.sh --apply-hosts
 ```
 
 ## Notes
