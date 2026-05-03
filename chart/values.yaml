@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: tree12/gitops-demo-app
-  tag: e104114
+90deaba
   pullPolicy: IfNotPresent
 
 service:
