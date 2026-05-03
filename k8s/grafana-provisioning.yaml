@@ -1,0 +1,283 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+  namespace: monitoring
+data:
+  datasource.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus.monitoring.svc.cluster.local:9090
+        isDefault: true
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.monitoring.svc.cluster.local:3100
+  dashboard-provider.yml: |
+    apiVersion: 1
+    providers:
+      - name: "CI/CD dashboards"
+        orgId: 1
+        folder: ""
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  ci-cd-dashboard.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": "-- Grafana --",
+            "enable": true,
+            "hide": true,
+            "iconColor": "#ffffff",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "rate(flask_request_count[1m])",
+              "interval": "",
+              "legendFormat": "requests/sec",
+              "refId": "A"
+            }
+          ],
+          "title": "App Request Rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "id": 2,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "up{job=\"ci-cd-app\"}",
+              "interval": "",
+              "legendFormat": "up",
+              "refId": "A"
+            }
+          ],
+          "title": "App Uptime",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 8
+          },
+          "id": 3,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "avg_over_time(flask_request_latency_seconds[5m])",
+              "interval": "",
+              "legendFormat": "avg latency",
+              "refId": "A"
+            }
+          ],
+          "title": "Request Latency (5m avg)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 16
+          },
+          "id": 4,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "sum(node_load1) by (instance)",
+              "interval": "",
+              "legendFormat": "load1 {{instance}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Node CPU Load (1m)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 16
+          },
+          "id": 5,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "sum(kube_pod_info) by (namespace)",
+              "interval": "",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Pods per Namespace",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 24
+          },
+          "id": 6,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "sum(kube_deployment_status_replicas_available) by (namespace)",
+              "interval": "",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Available Deployment Replicas by Namespace",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 32
+          },
+          "id": 7,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "sum(kube_statefulset_status_replicas) by (namespace)",
+              "interval": "",
+              "legendFormat": "{{namespace}}",
+              "refId": "A"
+            }
+          ],
+          "title": "StatefulSet Replica Count by Namespace",
+          "type": "timeseries"
+        }
+      ],
+      "schemaVersion": 36,
+      "style": "dark",
+      "tags": ["ci-cd", "app", "observability", "k8s"],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "timepicker": {},
+      "title": "CI/CD App Observability",
+      "uid": "ci-cd-app-observability",
+      "version": 1
+    }

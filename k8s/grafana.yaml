@@ -21,6 +21,18 @@ spec:
         env:
           - name: GF_SECURITY_ADMIN_PASSWORD
             value: "admin"
+        volumeMounts:
+          - name: grafana-provisioning
+            mountPath: /etc/grafana/provisioning
+          - name: grafana-dashboards
+            mountPath: /var/lib/grafana/dashboards
+      volumes:
+      - name: grafana-provisioning
+        configMap:
+          name: grafana-provisioning
+      - name: grafana-dashboards
+        configMap:
+          name: grafana-dashboards
 ---
 apiVersion: v1
 kind: Service

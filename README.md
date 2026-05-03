@@ -50,6 +50,20 @@ If you want the script to update `/etc/hosts` directly, run it with `sudo`:
 sudo ./scripts/setup-ingress.sh --apply-hosts
 ```
 
+## Observability
+
+This repo now includes full app observability with Prometheus, Grafana, Loki, and Promtail.
+
+- `app.py` exposes `/metrics` for Prometheus scraping.
+- `k8s/prometheus.yaml` scrapes the app on `/metrics`, cluster node metrics from `node-exporter`, and Kubernetes API object metrics from `kube-state-metrics`.
+- `k8s/grafana.yaml` is configured to provision Prometheus and Loki datasources.
+- `k8s/grafana-provisioning.yaml` provides datasource and dashboard configuration, including kube-state-metrics workload and namespace panels.
+- `k8s/promtail.yaml` installs Promtail to ship container logs into Loki.
+- `k8s/node-exporter.yaml` deploys a cluster-wide node exporter daemonset for host metrics.
+- `k8s/kube-state-metrics.yaml` provides Kubernetes API object metrics for Prometheus.
+
+After deployment, Grafana is available at `http://<grafana-ip>:3000` and should automatically include the Prometheus and Loki datasources.
+
 ## Notes
 
 - Replace `YOUR_DOCKERHUB_USERNAME` and repository URL placeholders before production.

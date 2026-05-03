@@ -21,10 +21,18 @@ spec:
         volumeMounts:
           - name: loki-config
             mountPath: /etc/loki
+          - name: loki-storage
+            mountPath: /tmp/loki
+          - name: loki-wal
+            mountPath: /wal
       volumes:
       - name: loki-config
         configMap:
           name: loki-config
+      - name: loki-storage
+        emptyDir: {}
+      - name: loki-wal
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -48,18 +56,17 @@ data:
     schema_config:
       configs:
         - from: 2020-10-24
-          store: boltdb-shipper
+          store: boltdb
           object_store: filesystem
           schema: v11
           index:
             prefix: index_
             period: 24h
     storage_config:
-      boltdb_shipper:
-        active_index_directory: /loki/index
-        shared_store: filesystem
+      boltdb:
+        directory: /tmp/loki/index
       filesystem:
-        directory: /loki/chunks
+        directory: /tmp/loki/chunks
     limits_config:
       enforce_metric_name: false
 ---

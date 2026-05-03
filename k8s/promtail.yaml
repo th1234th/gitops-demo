@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  namespace: monitoring
+data:
+  promtail.yml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+    positions:
+      filename: /tmp/positions.yaml
+    clients:
+      - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+    scrape_configs:
+      - job_name: kubernetes-pods
+        static_configs:
+          - targets: ['localhost']
+            labels:
+              job: kubernetes-pods
+              __path__: /var/log/pods/*/*.log
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: promtail
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+    spec:
+      containers:
+        - name: promtail
+          image: grafana/promtail:2.8.0
+          args:
+            - "-config.file=/etc/promtail/promtail.yml"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail
+            - name: positions
+              mountPath: /tmp
+            - name: varlogpods
+              mountPath: /var/log/pods
+            - name: varlogcontainers
+              mountPath: /var/log/containers
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-config
+        - name: positions
+          emptyDir: {}
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+            type: DirectoryOrCreate
+        - name: varlogcontainers
+          hostPath:
+            path: /var/log/containers
+            type: DirectoryOrCreate
