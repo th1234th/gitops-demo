@@ -1,5 +1,5 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: ci-cd-app
   namespace: ci-cd
@@ -15,38 +15,9 @@ spec:
     spec:
       containers:
       - name: app
-        image: tree12/ci-cd-app:latest
+        image: hashicorp/http-echo:0.2.3
+        args:
+          - "-text=CI/CD DevOps Pipeline is running!"
+          - "-listen=:5000"
         ports:
         - containerPort: 5000
-  strategy:
-    canary:
-      steps:
-      - setWeight: 20
-      - pause:
-          duration: 30s
-      - setWeight: 50
-      - pause:
-          duration: 30s
-      - setWeight: 100
-      - pause:
-          duration: 30s
-      analysis:
-        templates:
-        - templateName: rollback-analysis
----
-apiVersion: argoproj.io/v1alpha1
-kind: AnalysisTemplate
-metadata:
-  name: rollback-analysis
-  namespace: ci-cd
-spec:
-  metrics:
-  - name: request-errors
-    interval: 30s
-    count: 3
-    failureLimit: 1
-    provider:
-      prometheus:
-        address: http://prometheus.monitoring.svc.cluster.local
-        query: |
-          sum(rate(http_requests_total{app="ci-cd-app",status=~"5.."}[5m])) < 1
