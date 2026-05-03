@@ -45,11 +45,11 @@ echo "[1/5] Creating namespaces"
 kubectl apply -f "$NAMESPACE_FILE"
 
 echo "[2/5] Installing Argo CD"
-apply_url "$ARGOCD_INSTALL_URL" | kubectl apply -n "$ARGOCD_NAMESPACE" -f -
+apply_url "$ARGOCD_INSTALL_URL" | kubectl apply --server-side -n "$ARGOCD_NAMESPACE" -f -
 
 if [[ "$SKIP_IMAGE_UPDATER" == false ]]; then
   echo "[3/5] Installing Argo CD Image Updater"
-  apply_url "$IMAGE_UPDATER_INSTALL_URL" | kubectl apply -n "$ARGOCD_NAMESPACE" -f -
+  apply_url "$IMAGE_UPDATER_INSTALL_URL" | kubectl apply --server-side -n "$ARGOCD_NAMESPACE" -f -
 else
   echo "[3/5] Skipping Argo CD Image Updater installation"
 fi
