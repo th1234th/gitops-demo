@@ -43,6 +43,21 @@ If you want to skip Argo CD Image Updater installation, use:
 ./scripts/setup-argocd.sh --skip-image-updater
 ```
 
+## Access Argo CD UI
+
+Once Argo CD is installed and the `argocd-server` service is running, launch a local port-forward to access the UI:
+
+```bash
+chmod +x scripts/argocd-port-forward.sh
+./scripts/argocd-port-forward.sh
+```
+
+Then open:
+
+```text
+https://localhost:8080
+```
+
 ## Local TLS setup
 
 To create and install a self-signed certificate for `ci-cd.local`, run:
