@@ -5,7 +5,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 NAMESPACE_FILE="$ROOT/k8s/namespace.yaml"
 ARGOCD_NAMESPACE="argocd"
 ARGOCD_INSTALL_URL="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-IMAGE_UPDATER_INSTALL_URL="https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/v0.14.0/manifests/install.yaml"
+IMAGE_UPDATER_BASE="https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater"
+IMAGE_UPDATER_INSTALL_URL=""
 ARGOCD_APP_MANIFEST="$ROOT/k8s/argocd-app.yaml"
 IMAGE_UPDATER_CONFIG="$ROOT/k8s/argocd-image-updater.yaml"
 SKIP_IMAGE_UPDATER=false
@@ -41,6 +42,50 @@ apply_url() {
   fi
 }
 
+url_exists() {
+  local url="$1"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSLI --max-time 10 "$url" >/dev/null 2>&1
+  else
+    wget --spider -q "$url" >/dev/null 2>&1
+  fi
+}
+
+resolve_image_updater_url() {
+  local path
+  local url
+  local candidates=(
+    "stable/manifests/install.yaml"
+    "main/manifests/install.yaml"
+    "master/manifests/install.yaml"
+    "v0.14.0/manifests/install.yaml"
+    "v0.13.0/manifests/install.yaml"
+    "v0.12.0/manifests/install.yaml"
+  )
+
+  for path in "${candidates[@]}"; do
+    url="$IMAGE_UPDATER_BASE/$path"
+    if url_exists "$url"; then
+      echo "$url"
+      return 0
+    fi
+  done
+
+  if command -v curl >/dev/null 2>&1; then
+    local tags
+    tags=$(curl -fsSL "https://api.github.com/repos/argoproj-labs/argocd-image-updater/tags" | grep -o '"name": *"[^"]\+"' | awk -F'"' '{print $4}' | head -n 10)
+    for path in $tags; do
+      url="$IMAGE_UPDATER_BASE/$path/manifests/install.yaml"
+      if url_exists "$url"; then
+        echo "$url"
+        return 0
+      fi
+    done
+  fi
+
+  return 1
+}
+
 echo "[1/5] Creating namespaces"
 kubectl apply -f "$NAMESPACE_FILE"
 
@@ -48,7 +93,12 @@ echo "[2/5] Installing Argo CD"
 apply_url "$ARGOCD_INSTALL_URL" | kubectl apply --server-side -n "$ARGOCD_NAMESPACE" -f -
 
 if [[ "$SKIP_IMAGE_UPDATER" == false ]]; then
-  echo "[3/5] Installing Argo CD Image Updater"
+  echo "[3/5] Resolving Argo CD Image Updater manifest"
+  IMAGE_UPDATER_INSTALL_URL="$(resolve_image_updater_url)" || {
+    echo "Unable to resolve a valid Argo CD Image Updater install manifest." >&2
+    exit 1
+  }
+  echo "[3/5] Installing Argo CD Image Updater from: $IMAGE_UPDATER_INSTALL_URL"
   apply_url "$IMAGE_UPDATER_INSTALL_URL" | kubectl apply --server-side -n "$ARGOCD_NAMESPACE" -f -
 else
   echo "[3/5] Skipping Argo CD Image Updater installation"
