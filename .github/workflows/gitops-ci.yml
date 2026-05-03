@@ -43,19 +43,43 @@ jobs:
         run: |
           IMAGE_TAG="${GITHUB_SHA::7}"
           python - "$IMAGE_TAG" <<'PY'
-          import re, sys, pathlib
+          import pathlib, re, sys
           path = pathlib.Path('chart/values.yaml')
           text = path.read_text()
-          if re.search(r'^\s*tag:\s*.*$', text, flags=re.M):
-              text = re.sub(r'(^\s*tag:\s*).*$','\1' + sys.argv[1], text, count=1, flags=re.M)
-          else:
-              repo_match = re.search(r'^(\s*repository:\s*.*)$', text, flags=re.M)
-              if not repo_match:
+          lines = text.splitlines()
+          new_lines = []
+          inside_image = False
+          repo_index = None
+          repo_indent = ''
+          tag_found = False
+          for line in lines:
+              stripped = line.strip()
+              if stripped == 'image:' and not line.startswith(' '):
+                  inside_image = True
+                  new_lines.append(line)
+                  continue
+              if inside_image and stripped and not line.startswith(' '):
+                  inside_image = False
+              if inside_image:
+                  if re.match(r'^\s*tag:\s*.*$', line):
+                      indent = re.match(r'^(\s*)', line).group(1)
+                      new_lines.append(f'{indent}tag: {sys.argv[1]}')
+                      tag_found = True
+                      continue
+                  if re.match(r'^\s*repository:\s*.*$', line):
+                      repo_index = len(new_lines)
+                      repo_indent = re.match(r'^(\s*)', line).group(1)
+                      new_lines.append(line)
+                      continue
+                  if re.match(r'^\s*[0-9a-f]{7,40}\s*$', line):
+                      continue
+              new_lines.append(line)
+          if not tag_found:
+              if repo_index is None:
                   raise SystemExit('Unable to find image repository line in values.yaml')
-              indent = re.match(r'^(\s*)', repo_match.group(1)).group(1)
-              insert = '\n' + indent + f'tag: {sys.argv[1]}'
-              text = text[:repo_match.end()] + insert + text[repo_match.end():]
-          path.write_text(text)
+              new_lines.insert(repo_index + 1, f'{repo_indent}tag: {sys.argv[1]}')
+          newline = '\n' if text.endswith('\n') else ''
+          path.write_text('\n'.join(new_lines) + newline)
           PY
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
