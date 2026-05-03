@@ -1,0 +1,3 @@
+# Ignore local TLS certs used for ci-cd.local
+ci-cd.local.key
+ci-cd.local.crt
