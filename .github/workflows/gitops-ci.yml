@@ -43,14 +43,13 @@ jobs:
         run: |
           IMAGE_TAG="${GITHUB_SHA::7}"
           python - "$IMAGE_TAG" <<'PY'
-          import sys, pathlib
+          import re, sys, pathlib
           path = pathlib.Path('chart/values.yaml')
           text = path.read_text()
-          old = 'tag: latest'
-          new = f'tag: {sys.argv[1]}'
-          if old not in text:
+          new_tag = f'tag: {sys.argv[1]}'
+          if not re.search(r'^\s*tag:\s*.*$', text, flags=re.M):
               raise SystemExit('Unable to find image tag placeholder in values.yaml')
-          path.write_text(text.replace(old, new, 1))
+          path.write_text(re.sub(r'(^\s*tag:\s*).*$','\1' + sys.argv[1], text, count=1, flags=re.M))
           PY
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
