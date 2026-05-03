@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: YOUR_DOCKERHUB_USERNAME/ci-cd-app:latest
+        image: tree12/ci-cd-app:latest
         ports:
         - containerPort: 5000
   strategy:

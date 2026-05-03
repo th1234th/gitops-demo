@@ -11,5 +11,5 @@ data:
         prefix: docker.io/
   repositories.conf: |
     repositories:
-      - url: https://github.com/your-org/your-repo
+      - url: https://github.com/th1234th/gitops-demo
         # Configure repository credentials and access for Git write-back if required.
