@@ -46,10 +46,16 @@ jobs:
           import re, sys, pathlib
           path = pathlib.Path('chart/values.yaml')
           text = path.read_text()
-          new_tag = f'tag: {sys.argv[1]}'
-          if not re.search(r'^\s*tag:\s*.*$', text, flags=re.M):
-              raise SystemExit('Unable to find image tag placeholder in values.yaml')
-          path.write_text(re.sub(r'(^\s*tag:\s*).*$','\1' + sys.argv[1], text, count=1, flags=re.M))
+          if re.search(r'^\s*tag:\s*.*$', text, flags=re.M):
+              text = re.sub(r'(^\s*tag:\s*).*$','\1' + sys.argv[1], text, count=1, flags=re.M)
+          else:
+              repo_match = re.search(r'^(\s*repository:\s*.*)$', text, flags=re.M)
+              if not repo_match:
+                  raise SystemExit('Unable to find image repository line in values.yaml')
+              indent = re.match(r'^(\s*)', repo_match.group(1)).group(1)
+              insert = '\n' + indent + f'tag: {sys.argv[1]}'
+              text = text[:repo_match.end()] + insert + text[repo_match.end():]
+          path.write_text(text)
           PY
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
