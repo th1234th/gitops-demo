@@ -98,7 +98,8 @@ if [[ "$SKIP_IMAGE_UPDATER" == false ]]; then
     echo "Unable to resolve a valid Argo CD Image Updater install manifest." >&2
     exit 1
   }
-  echo "[3/5] Installing Argo CD Image Updater from: $IMAGE_UPDATER_INSTALL_URL"
+  IMAGE_UPDATER_VERSION="$(echo "$IMAGE_UPDATER_INSTALL_URL" | sed -n 's#.*/\([^/]*\)/manifests/install.yaml#\1#p')"
+  echo "[3/5] Installing Argo CD Image Updater $IMAGE_UPDATER_VERSION from: $IMAGE_UPDATER_INSTALL_URL"
   apply_url "$IMAGE_UPDATER_INSTALL_URL" | kubectl apply --server-side -n "$ARGOCD_NAMESPACE" -f -
 else
   echo "[3/5] Skipping Argo CD Image Updater installation"
