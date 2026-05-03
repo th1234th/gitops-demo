@@ -28,6 +28,21 @@ A dedicated GitOps folder demonstrating a complete CI/CD workflow with:
 4. Enable Argo CD to track `gitops-demo/chart` and deploy the Helm release.
 5. Use GitHub Actions to build and publish both `latest` and a short SHA-tagged image.
 
+## Argo CD bootstrap
+
+Use the repository helper to install Argo CD and apply the local Argo CD app manifest:
+
+```bash
+chmod +x scripts/setup-argocd.sh
+./scripts/setup-argocd.sh
+```
+
+If you want to skip Argo CD Image Updater installation, use:
+
+```bash
+./scripts/setup-argocd.sh --skip-image-updater
+```
+
 ## Local TLS setup
 
 To create and install a self-signed certificate for `ci-cd.local`, run:
